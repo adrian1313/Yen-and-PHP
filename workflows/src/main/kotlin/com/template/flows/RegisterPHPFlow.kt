@@ -31,6 +31,7 @@ class RegisterPHPFlow(private val name: String) : FlowFunctions() {
 
         if(ourIdentity != stringToParty("BankPHP"))
             throw IllegalArgumentException("Only the BankPH can use in this flow")
+
         return RegisterState(
                 name = name,
                 wallet = userWallet(),
@@ -38,8 +39,6 @@ class RegisterPHPFlow(private val name: String) : FlowFunctions() {
                 participants = listOf(ourIdentity)
         )
     }
-
-
 
     private fun userWallet() : MutableList<Amount<IssuedTokenType>>
     {

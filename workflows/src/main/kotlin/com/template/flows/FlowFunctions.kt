@@ -1,6 +1,7 @@
 package com.template.functions
 
 //import com.template.states.PlatformOrderState
+import com.r3.corda.lib.tokens.contracts.states.FungibleToken
 import com.template.states.RegisterState
 import net.corda.core.contracts.StateAndRef
 import net.corda.core.contracts.UniqueIdentifier
@@ -61,4 +62,11 @@ abstract class FlowFunctions : FlowLogic<SignedTransaction>()
 //        val criteria = QueryCriteria.LinearStateQueryCriteria(linearId = listOf(linearId))
 //        return serviceHub.vaultService.queryBy<PlatformOrderState>(criteria = criteria).states.single()
 //    }
+
+    fun getFungibleTokenByCurrency(currency: String): StateAndRef<FungibleToken> {
+        val criteria = QueryCriteria.VaultQueryCriteria()
+        return serviceHub.vaultService.queryBy<FungibleToken>(criteria = criteria).states.find { it.state.data.tokenType.tokenIdentifier == currency
+        }
+                ?: throw IllegalArgumentException("Unnavailable Currency")
+    }
 }

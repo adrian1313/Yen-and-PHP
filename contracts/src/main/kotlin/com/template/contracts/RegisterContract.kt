@@ -21,5 +21,6 @@ class RegisterContract : Contract
     interface Commands: CommandData
     {
         class Register : TypeOnlyCommandData(), Commands
+        class Update : TypeOnlyCommandData(), Commands
     }
 }
