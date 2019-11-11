@@ -24,10 +24,10 @@ import java.lang.IllegalArgumentException
 
 
 @StartableByRPC
-class IssuerPHPToUserPHPFlow(private val name: String, private val amount: Double): FlowFunctions() {
+class IssuerYENToUserYENFlow(private val name: String, private val amount: Double): FlowFunctions() {
     override fun call(): SignedTransaction {
-        val fungibleToken = getFungibleTokenByCurrency("PHcurrency").state.data
-        val redeemedToken = amount of TokenType("PHcurrency", 2)
+        val fungibleToken = getFungibleTokenByCurrency("YEN").state.data
+        val redeemedToken = amount of TokenType("YENcurrency", 2)
 
 
         subFlow(RedeemFungibleTokens(redeemedToken, fungibleToken.issuer))
@@ -53,8 +53,8 @@ class IssuerPHPToUserPHPFlow(private val name: String, private val amount: Doubl
 
     private fun outState() : RegisterState
     {
-        if (ourIdentity != stringToParty("BankPHP"))
-            throw IllegalArgumentException("Only the BankPH can use in this flow")
+        if (ourIdentity != stringToParty("BankJP"))
+            throw IllegalArgumentException("Only the BankJP can use in this flow")
         return RegisterState(
                 name = name,
                 wallet = userWallet(),
@@ -65,8 +65,8 @@ class IssuerPHPToUserPHPFlow(private val name: String, private val amount: Doubl
 
     private fun userWallet(): MutableList<Amount<IssuedTokenType>>
     {
-        val php = 0 of TokenType("PHP", 2) issuedBy stringToParty("BankPHP")
-        val PHcurrency = 0 of TokenType("PHcurrency", 2) issuedBy stringToParty("BankPHP")
+        val php = 0 of TokenType("YEN", 2) issuedBy stringToParty("BankJP")
+        val PHcurrency = 0 of TokenType("YENcurrency", 2) issuedBy stringToParty("BankJP")
         return mutableListOf(php, PHcurrency)
     }
 
