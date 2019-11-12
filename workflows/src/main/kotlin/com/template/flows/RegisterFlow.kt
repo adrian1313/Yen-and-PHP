@@ -20,7 +20,7 @@ import java.lang.IllegalArgumentException
 
 
 @StartableByRPC
-class RegisterPHPFlow(private val name: String) : FlowFunctions() {
+class RegisterFlow(private val name: String) : FlowFunctions() {
 
     @Suspendable
     override fun call(): SignedTransaction {
@@ -28,9 +28,6 @@ class RegisterPHPFlow(private val name: String) : FlowFunctions() {
     }
 
     private fun outState() : RegisterState{
-
-        if(ourIdentity != stringToParty("BankPHP"))
-            throw IllegalArgumentException("Only the BankPH can use in this flow")
 
         return RegisterState(
                 name = name,
@@ -42,9 +39,18 @@ class RegisterPHPFlow(private val name: String) : FlowFunctions() {
 
     private fun userWallet() : MutableList<Amount<IssuedTokenType>>
     {
-        val php = 0 of TokenType("php",2) issuedBy stringToParty("BankPH")
-        val PHcurrency = 0 of TokenType("PHcurrency", 2) issuedBy stringToParty("BankPH")
-        return mutableListOf(php,PHcurrency)
+        return if(ourIdentity == stringToParty("BankPHP")) {
+            val php = 0 of TokenType("php", 2) issuedBy ourIdentity
+            val PHcurrency = 0 of TokenType("PHPcoin", 2) issuedBy ourIdentity
+            mutableListOf(php, PHcurrency)
+        }
+
+        else
+        {
+            val yen = 0 of TokenType("yen",2) issuedBy ourIdentity
+            val YENcurrency = 0 of TokenType("YENcoin", 2) issuedBy ourIdentity
+            mutableListOf(yen,YENcurrency)
+        }
     }
 
     private fun transaction() = TransactionBuilder(notary = getPreferredNotary(serviceHub)).apply {
@@ -52,5 +58,6 @@ class RegisterPHPFlow(private val name: String) : FlowFunctions() {
         addOutputState(outState(), RegisterContract.ID)
         addCommand(cmd)
     }
+
 
 }

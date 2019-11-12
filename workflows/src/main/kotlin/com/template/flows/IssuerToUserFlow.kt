@@ -1,6 +1,6 @@
 package com.template.flows
 
-import com.r3.corda.lib.tokens.contracts.states.FungibleToken
+import co.paralleluniverse.fibers.Suspendable
 import com.r3.corda.lib.tokens.contracts.types.IssuedTokenType
 import com.r3.corda.lib.tokens.contracts.types.TokenType
 import com.r3.corda.lib.tokens.contracts.utilities.issuedBy
@@ -13,7 +13,6 @@ import com.template.states.RegisterState
 import net.corda.core.contracts.Amount
 import net.corda.core.contracts.Command
 import net.corda.core.contracts.StateAndRef
-import net.corda.core.contracts.UniqueIdentifier
 import net.corda.core.flows.FinalityFlow
 import net.corda.core.flows.StartableByRPC
 import net.corda.core.node.services.queryBy
@@ -24,10 +23,11 @@ import java.lang.IllegalArgumentException
 
 
 @StartableByRPC
-class IssuerPHPToUserPHPFlow(private val name: String, private val amount: Double): FlowFunctions() {
+class IssuerToUserFlow(private val name: String, private val amount: Double): FlowFunctions() {
+    @Suspendable
     override fun call(): SignedTransaction {
-        val fungibleToken = getFungibleTokenByCurrency("PHcurrency").state.data
-        val redeemedToken = amount of TokenType("PHcurrency", 2)
+        val fungibleToken = getFungibleTokenByCurrency("PHPcoin").state.data
+        val redeemedToken = amount of TokenType("PHPcoin", 2)
 
 
         subFlow(RedeemFungibleTokens(redeemedToken, fungibleToken.issuer))
@@ -53,22 +53,21 @@ class IssuerPHPToUserPHPFlow(private val name: String, private val amount: Doubl
 
     private fun outState() : RegisterState
     {
-        if (ourIdentity != stringToParty("BankPHP"))
-            throw IllegalArgumentException("Only the BankPH can use in this flow")
-        return RegisterState(
-                name = name,
-                wallet = userWallet(),
-                linearId = UniqueIdentifier(),
-                participants = listOf(ourIdentity)
-        )
+        val temp = getUserByName(name).state.data
+        val redeemedToken = amount of TokenType("PHPcoin", 2) issuedBy stringToParty("BankPHP")
+        val newWallet : MutableList<Amount<IssuedTokenType>> = mutableListOf()
+        temp.wallet.forEach{
+            if(it.token == redeemedToken.token){
+                newWallet.add(it.plus(redeemedToken))
+            }else{
+                newWallet.add(it)
+            }
+
+        }
+        return temp.copy(wallet = newWallet)
     }
 
-    private fun userWallet(): MutableList<Amount<IssuedTokenType>>
-    {
-        val php = 0 of TokenType("PHP", 2) issuedBy stringToParty("BankPHP")
-        val PHcurrency = 0 of TokenType("PHcurrency", 2) issuedBy stringToParty("BankPHP")
-        return mutableListOf(php, PHcurrency)
-    }
+
 
 }
 
